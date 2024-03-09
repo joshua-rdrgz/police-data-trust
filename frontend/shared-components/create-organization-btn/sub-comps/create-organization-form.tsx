@@ -2,7 +2,10 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import { FieldValues, useForm } from "react-hook-form"
 import { z } from "zod"
+import { useAuth } from "../../../helpers"
+import { CreatePartner, User } from "../../../helpers/api"
 import { Dialog as D, Form as F, Input, PrimaryButton } from "../../../shared-components"
+import { useCreatePartner } from "../hooks/useCreatePartner"
 import styles from "./create-organization-form.module.css"
 import SelectOrg from "./select-org"
 import YesNoToggle from "./yes-no-toggle"
@@ -17,6 +20,10 @@ const createOrganizationSchema = z.object({
 export default function CreateOrganizationForm() {
   const { organizationCTA, orgExists } = styles
 
+  const { accessToken, user } = useAuth()
+
+  const createPartnerMutation = useCreatePartner(accessToken)
+
   const formMethods = useForm<CreateOrganizationSchema>({
     resolver: zodResolver(createOrganizationSchema),
     defaultValues: {
@@ -25,13 +32,18 @@ export default function CreateOrganizationForm() {
       orgExists: "NO"
     }
   })
+
   const [formCanSubmit, setFormCanSubmit] = useState(true)
 
   const onSubmit = (values: FieldValues) => {
     if (values.orgExists === "YES") {
       setFormCanSubmit(false)
     } else {
-      console.log("values: ", values)
+      const newPartnerData = mapFormDataToApi(values, user)
+      createPartnerMutation.mutate(newPartnerData, {
+        onSuccess: () => {
+        }
+      })
     }
   }
 
@@ -83,10 +95,20 @@ export default function CreateOrganizationForm() {
         )}
       />
       <D.Footer>
-        <PrimaryButton type="submit" className={organizationCTA}>
-          Create Organization
+        <PrimaryButton
+          type="submit"
+          className={organizationCTA}
+          disabled={createPartnerMutation.isLoading}>
+          {createPartnerMutation.isLoading ? "Creating..." : "Create Organization"}
         </PrimaryButton>
       </D.Footer>
     </F.Root>
   )
+}
+
+function mapFormDataToApi(formData: CreateOrganizationSchema, userData: User): CreatePartner {
+  return {
+    name: formData.organizationName,
+    contact_email: userData.email
+  }
 }
