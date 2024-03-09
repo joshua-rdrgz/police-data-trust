@@ -5,6 +5,7 @@ import { z } from "zod"
 import { useAuth } from "../../../helpers"
 import { CreatePartner, User } from "../../../helpers/api"
 import { Dialog as D, Form as F, Input, PrimaryButton } from "../../../shared-components"
+import { useDialogContext } from "../../dialog/dialog-context"
 import { useCreatePartner } from "../hooks/useCreatePartner"
 import styles from "./create-organization-form.module.css"
 import SelectOrg from "./select-org"
@@ -35,6 +36,8 @@ export default function CreateOrganizationForm() {
 
   const [formCanSubmit, setFormCanSubmit] = useState(true)
 
+  const { setOpen } = useDialogContext()
+
   const onSubmit = (values: FieldValues) => {
     if (values.orgExists === "YES") {
       setFormCanSubmit(false)
@@ -42,6 +45,7 @@ export default function CreateOrganizationForm() {
       const newPartnerData = mapFormDataToApi(values, user)
       createPartnerMutation.mutate(newPartnerData, {
         onSuccess: () => {
+          setOpen(false)
         }
       })
     }
