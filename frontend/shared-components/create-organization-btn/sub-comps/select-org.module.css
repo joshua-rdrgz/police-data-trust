@@ -1,0 +1,10 @@
+.loading {
+  font-size: var(--size20);
+  text-align: center;
+}
+
+.error {
+  font-size: var(--size20);
+  text-align: center;
+  color: var(--red);
+}

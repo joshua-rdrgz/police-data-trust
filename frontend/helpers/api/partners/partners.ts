@@ -9,3 +9,11 @@ export function createPartner(data: CreatePartner, accessToken: AccessToken) {
     accessToken
   })
 }
+
+export function getPartners(accessToken: AccessToken) {
+  return request({
+    method: "GET",
+    url: "/partners/", // API will redirect OPTIONS request w/o trailing "/"
+    accessToken
+  })
+}
