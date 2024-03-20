@@ -1,3 +1,4 @@
 export enum QueryKeys {
-  PARTNERS = "partners"
+  PARTNERS = "partners",
+  PARTNER = "partner"
 }

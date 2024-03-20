@@ -17,3 +17,11 @@ export function getPartners(accessToken: AccessToken) {
     accessToken
   })
 }
+
+export function getPartnerById(id: string, accessToken: AccessToken) {
+  return request({
+    method: "GET",
+    url: `/partners/${id}`,
+    accessToken
+  })
+}
