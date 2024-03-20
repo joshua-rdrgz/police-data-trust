@@ -12,11 +12,23 @@ import SelectOrg from "./select-org"
 import YesNoToggle from "./yes-no-toggle"
 
 type CreateOrganizationSchema = z.infer<typeof createOrganizationSchema>
-const createOrganizationSchema = z.object({
-  organizationName: z.string().min(1, "Organization Name is required."),
+const createOrganizationSchema = z
+  .object({
+    organizationName: z.string(),
   existingOrg: z.string(),
   orgExists: z.enum(["YES", "NO"])
 })
+  .superRefine(({ organizationName, orgExists }, ctx) => {
+    if (orgExists === "NO") {
+      if (organizationName.trim() === "") {
+        ctx.addIssue({
+          code: "custom",
+          message: "Organization Name is required.",
+          path: ["organizationName"]
+        })
+      }
+    }
+  })
 
 export default function CreateOrganizationForm() {
   const { organizationCTA, orgExists } = styles
