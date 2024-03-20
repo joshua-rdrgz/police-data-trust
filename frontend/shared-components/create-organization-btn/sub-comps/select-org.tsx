@@ -5,7 +5,7 @@ import styles from "./select-org.module.css"
 
 interface SelectOrgProps {
   value: string
-  onChange(...event: any[]): void
+  onChange(...args: any[]): void
 }
 
 export default function SelectOrg({ value, onChange }: SelectOrgProps) {
@@ -26,11 +26,18 @@ export default function SelectOrg({ value, onChange }: SelectOrgProps) {
         <S.Value placeholder="Pick an organization if it's yours..." />
       </S.Trigger>
       <S.Content>
-        {partnersData?.results.map((partner: Partner) => (
-          <S.Item key={partner.id} value={partner.id.toString()}>
-            {partner.name}
-          </S.Item>
-        ))}
+        <S.Item value={null} onClick={() => onChange("")}>
+          Clear Selection
+        </S.Item>
+        <S.Separator />
+        <S.Group>
+          <S.Label>Organizations</S.Label>
+          {partnersData?.results.map((partner: Partner) => (
+            <S.Item key={partner.id} value={partner.id.toString()}>
+              {partner.name}
+            </S.Item>
+          ))}
+        </S.Group>
       </S.Content>
     </S.Root>
   )
