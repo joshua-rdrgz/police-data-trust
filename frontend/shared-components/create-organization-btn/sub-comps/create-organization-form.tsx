@@ -1,9 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { FieldValues, useForm } from "react-hook-form"
 import { z } from "zod"
 import { useAuth } from "../../../helpers"
-import { CreatePartner, User } from "../../../helpers/api"
+import { CreatePartner, User, usePartner } from "../../../helpers/api"
 import { Dialog as D, Form as F, Input, PrimaryButton } from "../../../shared-components"
 import { useDialogContext } from "../../dialog/dialog-context"
 import { useCreatePartner } from "../hooks/useCreatePartner"
@@ -15,9 +15,9 @@ type CreateOrganizationSchema = z.infer<typeof createOrganizationSchema>
 const createOrganizationSchema = z
   .object({
     organizationName: z.string(),
-  existingOrg: z.string(),
-  orgExists: z.enum(["YES", "NO"])
-})
+    existingOrg: z.string(),
+    orgExists: z.enum(["YES", "NO"])
+  })
   .superRefine(({ organizationName, orgExists }, ctx) => {
     if (orgExists === "NO") {
       if (organizationName.trim() === "") {
@@ -33,10 +33,10 @@ const createOrganizationSchema = z
 export default function CreateOrganizationForm() {
   const { organizationCTA, orgExists } = styles
 
+  const [formCanSubmit, setFormCanSubmit] = useState(true)
+  const { setOpen } = useDialogContext()
   const { accessToken, user } = useAuth()
-
   const createPartnerMutation = useCreatePartner(accessToken)
-
   const formMethods = useForm<CreateOrganizationSchema>({
     resolver: zodResolver(createOrganizationSchema),
     defaultValues: {
@@ -46,9 +46,13 @@ export default function CreateOrganizationForm() {
     }
   })
 
-  const [formCanSubmit, setFormCanSubmit] = useState(true)
+  const selectedOrgId = formMethods.watch("existingOrg")
+  const { data: selectedPartner } = usePartner(selectedOrgId, accessToken)
 
-  const { setOpen } = useDialogContext()
+  useEffect(() => {
+    const newOrgExistsValue = selectedOrgId ? "YES" : "NO"
+    formMethods.setValue("orgExists", newOrgExistsValue)
+  }, [selectedOrgId, formMethods])
 
   const onSubmit = (values: FieldValues) => {
     if (values.orgExists === "YES") {
@@ -64,9 +68,14 @@ export default function CreateOrganizationForm() {
   }
 
   if (!formCanSubmit) {
+    if (!selectedPartner?.contact_email) {
+      return <p className={orgExists}>This organization already exists!</p>
+    }
+
     return (
       <p className={orgExists}>
-        The organization already exists! For admission, please contact: org@email.com
+        The organization already exists! For admission, please contact:{" "}
+        {selectedPartner.contact_email}
       </p>
     )
   }
